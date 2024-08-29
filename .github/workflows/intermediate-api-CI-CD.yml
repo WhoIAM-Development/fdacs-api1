@@ -20,14 +20,20 @@
 name: Build and deploy ASP.Net Core app to an Azure Web App
 
 env:
-  AZURE_WEBAPP_NAME: 'fdacs-whoiam-b2c-intermediate-api'                        # set this to the name of your Azure Web App
-  AZURE_WEBAPP_PACKAGE_PATH: '.'                            # set this to the path to your web app project, defaults to the repository root
-  DOTNET_VERSION: '8.0.x'                                   # set this to the .NET Core version to use
+  # set this to the name of your Azure Web App
+  AZURE_WEBAPP_NAME: 'fdacs-whoiam-b2c-intermediate-api'  
+  # set this to the path to your web app project, defaults to the repository root                      
+  AZURE_WEBAPP_PACKAGE_PATH: '.'
+  # set this to the .NET Core version to use                            
+  DOTNET_VERSION: '8.0.x'                                   
 
 on:
   push:
     branches: [ "main" , "dev" , "QA" ]
-  workflow_dispatch:
+  pull_request:
+    branches: [ "main" , "dev" , "QA" ]
+  # Allow manual triggering of the workflow
+  workflow_dispatch:                                            
 
 permissions:
   contents: read
@@ -45,6 +51,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Set up dependency caching for faster builds
+        # Cache NuGet packages for faster builds  
         uses: actions/cache@v3
         with:
           path: ~/.nuget/packages
@@ -59,8 +66,9 @@ jobs:
         run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/webapp
 
       - name: Upload artifact for deployment job
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
+           # Name the artifact
           name: .net-app
           path: ${{env.DOTNET_ROOT}}/webapp
 
@@ -75,8 +83,9 @@ jobs:
 
     steps:
       - name: Download artifact from build job
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
+          # Name of the artifact to download
           name: .net-app
 
       - name: Deploy to Azure Web App
